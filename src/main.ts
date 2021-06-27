@@ -1,31 +1,17 @@
-import { BANTOM_LIMIT, HEAVY_LIMIT } from './constants/weight';
+import { BANTOM_CLASS } from './constants/weight';
 import { League } from './league';
 import { PlayerInstance } from './player';
+import player from './resources/player.json';
 
 class App {
   constructor() {
-    const newLeague = new League(4, {
-      name: 'bantam',
-      limit: HEAVY_LIMIT,
+    const playerInstance = player.players.map((player) => {
+      return new PlayerInstance(player);
     });
+    const newLeague = new League(4, BANTOM_CLASS);
 
-    const newPlayer = new PlayerInstance(
-      'lee',
-      172,
-      80,
-      {
-        attack: 100,
-        defence: 80,
-        hp: 100,
-      },
-      {
-        baseFight: 'boxing',
-        etc: ['kickBoxing'],
-      },
-    );
-
-    newLeague.joinPlayers(newPlayer);
-    newLeague.joinPlayers([newPlayer, newPlayer, newPlayer]);
+    newLeague.joinPlayers(playerInstance);
+    newLeague.start('winCount');
   }
 }
 
