@@ -5,6 +5,8 @@ import { Weight } from './types/weight';
 
 type RaffleMethod = 'pov' | 'winCount' | 'loseCount';
 
+// 객체 지향, class 선언했다.
+
 interface ILeague {
   weightClass: Weight;
   stage?: Stage;
@@ -15,13 +17,29 @@ interface ILeague {
 // class가 해당 interface를 필수적으로 구현하게끔 한다.
 export class League implements ILeague {
   stage?: Stage;
-  start(raffleMethod: RaffleMethod) {
+  playerInstances: PlayerInstance[] = [];
+
+  constructor(private matchLength: number, public weightClass: Weight) {}
+
+  async start(raffleMethod: RaffleMethod) {
     // 배열 ... 하는 이유 : 메모리 참조로 새로운 배열을 만들어서 기존의 값을 건드리지 않고
     // 새로운 객체를 만들기 위해서.
-    const players = [...this.playerInstances];
-    const fights = this.raffleFight(players, raffleMethod);
-    this.stage = new Stage(fights);
-    this.stage.start();
+    // 불변성
+    let players = [...this.playerInstances];
+
+    while (players.length > 1) {
+      const fights = this.raffleFight(players, raffleMethod);
+      const stage = new Stage(fights);
+      await stage.start();
+      const winners = stage.winners;
+
+      if (winners == null) {
+        throw new Error(`critical error`);
+      }
+      players = winners;
+    }
+    const champion = players[0];
+    console.log(`이번 리그의 챔피언은 ${champion.player.name}입니다!`);
   }
 
   raffleFight(players: PlayerInstance[], raffleMethod: RaffleMethod) {
@@ -49,6 +67,7 @@ export class League implements ILeague {
 
   createFights(players: PlayerInstance[]) {
     const isUnearneWin = players.length % 2;
+
     const fights: Fight[] = [];
 
     for (let i = 0; i < players.length; i += 2) {
@@ -70,8 +89,6 @@ export class League implements ILeague {
     });
   }
 
-  playerInstances: PlayerInstance[] = [];
-  constructor(private matchLength: number, public weightClass: Weight) {}
   // 위의 private matchLength와 같다.
   // private matchLength: number;
   // constructor(matchLength: number) {
@@ -88,8 +105,11 @@ export class League implements ILeague {
   }
 
   joinPlayers(playerInstances: PlayerInstance | PlayerInstance[]) {
+    // if (typeof playerInstances === 'object')
+    // 자바스크립트에서 구현해놓은 Array class로 배열인지 확인할 수 있다.
     if (Array.isArray(playerInstances)) {
       playerInstances.forEach((player) => this.checkPlayer(player));
+
       if (playerInstances.length + this.playerInstances.length > this.matchLength) {
         throw new Error('플레이어 인원 초과입니다.');
       }

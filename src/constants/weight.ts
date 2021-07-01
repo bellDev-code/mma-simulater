@@ -1,5 +1,7 @@
 import { Weight, WeightLimit } from '../types/weight';
 
+// 상수들 변하지 않는 값들이다.
+
 const FLY_LIMIT: WeightLimit = {
   weightLimit: 56.7,
   difference: 4.5,
