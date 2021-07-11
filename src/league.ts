@@ -10,6 +10,7 @@ type RaffleMethod = 'pov' | 'winCount' | 'loseCount';
 interface ILeague {
   weightClass: Weight;
   stage?: Stage;
+
   joinPlayers: (players: PlayerInstance | PlayerInstance[]) => void;
 }
 
@@ -18,6 +19,7 @@ interface ILeague {
 export class League implements ILeague {
   stage?: Stage;
   playerInstances: PlayerInstance[] = [];
+  scoreList: PlayerInstance[][] = [];
 
   constructor(private matchLength: number, public weightClass: Weight) {}
 
@@ -32,50 +34,65 @@ export class League implements ILeague {
       const stage = new Stage(fights);
       await stage.start();
       const winners = stage.winners;
+      const losers = stage.losers;
 
-      if (winners == null) {
+      if (winners == null || losers == null) {
         throw new Error(`critical error`);
       }
+
+      this.scoreList.push(losers);
+
       players = winners;
     }
+
+    this.scoreList.push([players[0]]);
+
     const champion = players[0];
     console.log(`이번 리그의 챔피언은 ${champion.player.name}입니다!`);
+    console.log(this.scoreList);
+    this.calScore(this.scoreList);
+  }
+
+  private calScore(scoreList: PlayerInstance[][]) {
+    for (let i = 0; i < scoreList.length; i++) {
+      const players = scoreList[i];
+
+      players.forEach((player) => {
+        const score = (i + 1) * 100;
+        console.log(`${player.player.name} 이번 리그 점수`, score);
+      });
+    }
   }
 
   raffleFight(players: PlayerInstance[], raffleMethod: RaffleMethod) {
-    let sotedPlayers: PlayerInstance[] = [];
+    let sortedPlayers: PlayerInstance[] = [];
     switch (raffleMethod) {
       case 'pov':
-        sotedPlayers = players.sort((a, b) => a.player.grade.pov - b.player.grade.pov);
+        sortedPlayers = players.sort((a, b) => a.player.grade.pov - b.player.grade.pov);
         break;
       case 'winCount':
-        sotedPlayers = players.sort((a, b) => b.player.grade.total.win - a.player.grade.total.win);
+        sortedPlayers = players.sort((a, b) => b.player.grade.total.win - a.player.grade.total.win);
         break;
       case 'loseCount':
-        sotedPlayers = players.sort(
+        sortedPlayers = players.sort(
           (a, b) => b.player.grade.total.lose - a.player.grade.total.lose,
         );
         break;
       default:
         throw new Error(`${raffleMethod} is not raffle method 😂`);
     }
-    const fights = this.createFights(sotedPlayers);
+    const fights = this.createFights(sortedPlayers);
 
     this.printFightRaffle(fights);
     return fights;
   }
 
   createFights(players: PlayerInstance[]) {
-    const isUnearneWin = players.length % 2;
-
     const fights: Fight[] = [];
 
     for (let i = 0; i < players.length; i += 2) {
       fights.push(new Fight([players[i], players[i + 1]]));
     }
-    /**
-     * @TODO 플레이어 홀수 참여 시 부전승 추가
-     */
 
     return fights;
   }

@@ -1,9 +1,10 @@
+import { SKILL_LIST } from './constants/skill';
 import { PlayerInstance } from './player';
 import { makeRandom } from './resources/utils';
 import { Player } from './types/player';
 
-const FITHT_PLAYER_LIMIT = 2;
-const ATTACK_TERM = 1000;
+const FIGHT_PLAYER_LIMIT = 2;
+const ATTACK_TERM = 10;
 
 type SkillTextProps = {
   attackPlayer: Player;
@@ -22,30 +23,17 @@ type SkillTextProps = {
 
 const displaySkillText = ({ damage, attackPlayer, defensePlayer }: SkillTextProps) => {
   // const {a, b, c} = props
-  const ran = makeRandom(2);
+  const skill = SKILL_LIST[makeRandom(SKILL_LIST.length - 1)];
 
-  switch (ran) {
-    case 0:
-      return console.log(
-        `${attackPlayer.name}의 강력한 오른쪽 스트레이트! ${defensePlayer.name}에게 적중합니다! (damage: -${damage}, hp: ${defensePlayer.stats.hp})`,
-      );
-    case 1:
-      return console.log(
-        `${attackPlayer.name}의 강력한 오른쪽 로우킥!! ${defensePlayer.name}에게 적중합니다! (damage: -${damage}, hp: ${defensePlayer.stats.hp})`,
-      );
-    case 2:
-      return console.log(
-        `${attackPlayer.name}의 인사이드 태클! ${defensePlayer.name}에게 적중합니다! (damage: -${damage}, hp: ${defensePlayer.stats.hp})`,
-      );
-    default:
-      throw new Error(`display skill index ${ran} is not exist.`);
-  }
+  return console.log(
+    `${attackPlayer.name}의 ${skill} ${defensePlayer.name}에게 적중합니다! (damage: -${damage}, hp: ${defensePlayer.stats.hp})`,
+  );
 };
 
 export class Fight {
   constructor(public players: PlayerInstance[]) {
-    if (players.length > FITHT_PLAYER_LIMIT) {
-      throw new Error(`player max limit is ${FITHT_PLAYER_LIMIT}`);
+    if (players.length > FIGHT_PLAYER_LIMIT) {
+      throw new Error(`player max limit is ${FIGHT_PLAYER_LIMIT}`);
     }
   }
 
@@ -67,7 +55,7 @@ export class Fight {
     });
   }
 
-  private winer(red: PlayerInstance, blue: PlayerInstance) {
+  private winner(red: PlayerInstance, blue: PlayerInstance) {
     if (red.player.stats.hp <= 0) {
       return blue;
     }
@@ -96,16 +84,23 @@ export class Fight {
       await new Promise((f) => setTimeout(f, makeRandom(ATTACK_TERM)));
     }
 
-    const winnerInstance = this.winer(red, blue);
+    const winnerInstance = this.winner(red, blue);
 
     const winner = this.players.find((player) => player.player.id === winnerInstance.player.id);
-    if (!winner) {
+
+    const loser = this.players.find((player) => player.player.id !== winnerInstance.player.id);
+
+    if (!winner || !loser) {
       throw new Error(`critical error (cannot find winner)`);
     }
+
+    winner.win();
+    loser.lose();
     console.log(`승자는 ${winner.player.name}입니다!!!`);
 
     return {
-      winer: winner,
+      winner: winner,
+      loser: loser,
     };
   }
 }

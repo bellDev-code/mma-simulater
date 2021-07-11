@@ -1,4 +1,5 @@
 import { BANTOM_CLASS } from './constants/weight';
+import { updatePlayer } from './json';
 import { League } from './league';
 import { PlayerInstance } from './player';
 import player from './resources/player.json';
@@ -15,9 +16,15 @@ class App {
     newLeague.joinPlayers(playerInstance);
 
     newLeague.start('winCount');
+
+    updatePlayer({
+      id: 1,
+      name: 'blang',
+      style: {
+        baseFight: '태권도',
+      },
+    });
   }
 }
-
-// 부전승 전적 남기기
 
 const app = new App();

@@ -1,21 +1,24 @@
 import { Fight } from './fight';
 import { PlayerInstance } from './player';
 
-const FIGHT_TERM = 5000;
+const FIGHT_TERM = 10;
 
 export class Stage {
   winners?: PlayerInstance[];
+  losers?: PlayerInstance[];
   constructor(private fights: Fight[]) {}
 
   // 지금은 제대로 되어있는거 아님.
   async start() {
     const winners = [];
+    const losers = [];
     // forof 함수를 만드는게 아님. => index가 없다.
     for (let i = 0; i < this.fights.length; i++) {
       const fight = this.fights[i];
 
-      const { winer } = await fight.play();
-      winners.push(winer);
+      const { winner, loser } = await fight.play();
+      winners.push(winner);
+      losers.push(loser);
 
       if (i === this.fights.length - 1) {
         console.log(`모든 경기가 끝났습니다.`);
@@ -30,6 +33,7 @@ export class Stage {
     }
 
     this.winners = winners;
+    this.losers = losers;
 
     // for (const fight of this.fights) {
     //   await fight.play();
